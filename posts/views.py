@@ -8,8 +8,11 @@
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from posts.models import Post
 from posts.serializers import PostModelSerializer
+from rest_framework import generics
+from .serializers import RegisterSerializer, PostSerializer
+from .models import Post
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(['GET', 'PUT'])
 def posts_list(request):
@@ -45,3 +48,14 @@ def posts_detail(request, pk):
         return Response(status=204)
     else:
         return Response(status=405)
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+
+class PostCreateView(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
